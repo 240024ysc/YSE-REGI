@@ -187,33 +187,41 @@
             renderCart();
         }
         function showDailySales() {
-            fetch("sales_today.php")
+            fetch("sales_summary.php")
                 .then(res => res.json())
                 .then(data => {
-                    let html = "<table style='width:100%; border-collapse: collapse;'>"
-                        + "<tr style='background:#f0f0f0;'>"
-                        + "<th style='padding:8px; border-bottom:1px solid #ccc;'>日時</th>"
-                        + "<th style='padding:8px; border-bottom:1px solid #ccc;'>取引番号</th>"
-                        + "<th style='padding:8px; border-bottom:1px solid #ccc;'>合計</th>"
-                        + "</tr>";
+                    let html = "";
+                    const sortedDates = Object.keys(data).sort().reverse(); // ngày mới trước
 
-                    data.records.forEach(row => {
-                        html += `<tr>
-                    <td style='padding:8px; border-bottom:1px solid #eee;'>${row.created_at}</td>
-                    <td style='padding:8px; border-bottom:1px solid #eee;'>${row.id}</td>
-                    <td style='padding:8px; border-bottom:1px solid #eee;'>${parseFloat(row.total).toLocaleString()} 円</td>
-                </tr>`;
+                    sortedDates.forEach(date => {
+                        html += `<h3 style="margin-top:20px;">📅 ${date}</h3>`;
+                        html += "<table style='width:100%; border-collapse: collapse;'>"
+                            + "<tr style='background:#f0f0f0;'>"
+                            + "<th style='padding:8px; border-bottom:1px solid #ccc;'>Thời gian</th>"
+                            + "<th style='padding:8px; border-bottom:1px solid #ccc;'>Mã giao dịch</th>"
+                            + "<th style='padding:8px; border-bottom:1px solid #ccc;'>Tổng tiền</th>"
+                            + "</tr>";
+
+                        data[date].transactions.forEach(tx => {
+                            html += `<tr>
+                        <td style='padding:8px; border-bottom:1px solid #eee;'>${tx.created_at}</td>
+                        <td style='padding:8px; border-bottom:1px solid #eee;'>#${tx.id}</td>
+                        <td style='padding:8px; border-bottom:1px solid #eee;'>${parseFloat(tx.total).toLocaleString()} VND</td>
+                    </tr>`;
+                        });
+
+                        html += `<tr style="font-weight:bold;"><td colspan="2">Tổng ngày ${date}</td>
+                         <td>${parseFloat(data[date].total).toLocaleString()} VND</td></tr>`;
+
+                        html += "</table>";
                     });
 
-                    html += "</table>";
-
                     document.getElementById("sales_table").innerHTML = html;
-                    document.getElementById("sales_total").innerText =
-                        "本日の売上合計: " + parseFloat(data.total).toLocaleString() + " 円";
-
+                    document.getElementById("sales_total").innerHTML = ""; // không cần tổng tất cả nữa
                     document.getElementById("sales_report_overlay").style.display = "flex";
-                    document.getElementById("sales_report_overlay").style.display = "block";
                 });
+        }
+
         }
 
         function closeSales() {
