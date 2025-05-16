@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Máy Thanh Toán</title>
+    <style>
+        body {
+            font-family: Arial;
+            padding: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+
+        input[type="text"] {
+            width: 200px;
+        }
+
+        #total {
+            font-size: 20px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>YSE REGI</h2>
+
+    <input type="text" id="product_code" placeholder="バーコード入力">
+    <button onclick="addProduct()">追加</button>
+
+    <table id="cart_table">
+        <thead>
+            <tr>
+                <th>バーコード</th>
+                <th>商品名</th>
+                <th>金額</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+        <div id="invoice"
+            style="margin-top:20px; border:1px solid #ccc; padding:10px; width:300px; float:right; display:none;">
+            <h3>明細書</h3>
+            <div id="invoice_items"></div>
+            <div id="invoice_total" style="margin-top:10px; font-weight:bold;"></div>
+            <button onclick="goBack()" style="margin-top:10px;">🔙</button>
+        </div>
+        <div id="sales_report_overlay" style="
+            display:none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            justify-content: center;
+            align-items: center;
+        ">
+            <div style="
+                background: #fff;
+                border-radius: 10px;
+                padding: 20px;
+                width: 600px;
+                max-height: 80vh;
+                overflow-y: auto;
+                box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            ">
+                <h2 style="text-align:center;">📊 今日の売り上げ</h2>
+                <div id="sales_table" style="margin-top: 10px;"></div>
+                <div id="sales_total" style="margin-top: 20px; font-weight: bold; text-align:right;"></div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button onclick="closeSales()"
+                        style="padding: 10px 20px; border:none; background:#2196F3; color:white; border-radius:5px;">🔙</button>
+                </div>
+            </div>
+        </div>
+
+
+
+    </table>
+
+    <div id="total">合計: 0 円</div>
+    <button onclick="checkout()">確認</button>
+    <button onclick="toggleTax()">税込</button>
+    <button onclick="showDailySales()">売上</button>
+
+
+    <script>
+        let cart = [];
+
+        function addProduct() {
+            const code = document.getElementById('product_code').value;
+            fetch(`get_product.php?code=${code}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        cart.push(data.product);
+                        renderCart();
+                    } else {
+                        alert('商品を見つけない!');
+                    }
+                });
+            document.getElementById('product_code').value = '';
+        }
+        let includeTax = false;
+
+        function toggleTax() {
+            includeTax = !includeTax;
+            renderCart();
+        }
+
+        function renderCart() {
+            const tbody = document.querySelector('#cart_table tbody');
+            tbody.innerHTML = '';
+            let total = 0;
+            cart.forEach(p => {
+                total += parseFloat(p.price);
+                tbody.innerHTML += `<tr>
+                    <td>${p.code}</td>
+                    <td>${p.name}</td>
+                   <td>${parseFloat(p.price).toLocaleString()} 円</td>
+                </tr>`;
+            });
+            let totalDisplay = total;
+            if (includeTax) {
+                totalDisplay *= 1.1; // Thuế 10%
+            }
+
+            document.getElementById('total').innerText =
+                '合計: ' + totalDisplay.toLocaleString() + ' 円' + (includeTax ? ' (税込)' : '');
+
+        }
+
+        function checkout() {
+            if (cart.length === 0) {
+                alert("Chưa có sản phẩm nào!");
+                return;
+            }
+
+            fetch('checkout.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cart })
+            }).then(res => res.text())
+                .then(msg => {
+                    alert(msg);
+
+                    // Hiển thị hóa đơn
+                    const invoiceBox = document.getElementById('invoice');
+                    const itemsBox = document.getElementById('invoice_items');
+                    const totalBox = document.getElementById('invoice_total');
+
+                    let html = "<ul>";
+                    let total = 0;
+                    cart.forEach(p => {
+                        total += parseFloat(p.price);
+                        html += `<li>${p.name}: ${parseFloat(p.price).toLocaleString()} 円</li>`;
+                    });
+                    html += "</ul>";
+
+                    let totalWithTax = includeTax ? total * 1.1 : total;
+
+                    itemsBox.innerHTML = html;
+                    totalBox.innerText = "合計: " + totalWithTax.toLocaleString() + " 円" + (includeTax ? "" : "");
+
+                    invoiceBox.style.display = 'block';
+
+                    // Reset giỏ hàng
+                    cart = [];
+                    renderCart();
+                });
+        }
+        function goBack() {
+            document.getElementById('invoice').style.display = 'none';
+            cart = [];
+            renderCart();
+        }
+        function showDailySales() {
+            fetch("sales_today.php")
+                .then(res => res.json())
+                .then(data => {
+                    let html = "<table style='width:100%; border-collapse: collapse;'>"
+                        + "<tr style='background:#f0f0f0;'>"
+                        + "<th style='padding:8px; border-bottom:1px solid #ccc;'>日時</th>"
+                        + "<th style='padding:8px; border-bottom:1px solid #ccc;'>取引番号</th>"
+                        + "<th style='padding:8px; border-bottom:1px solid #ccc;'>合計</th>"
+                        + "</tr>";
+
+                    data.records.forEach(row => {
+                        html += `<tr>
+                    <td style='padding:8px; border-bottom:1px solid #eee;'>${row.created_at}</td>
+                    <td style='padding:8px; border-bottom:1px solid #eee;'>${row.id}</td>
+                    <td style='padding:8px; border-bottom:1px solid #eee;'>${parseFloat(row.total).toLocaleString()} 円</td>
+                </tr>`;
+                    });
+
+                    html += "</table>";
+
+                    document.getElementById("sales_table").innerHTML = html;
+                    document.getElementById("sales_total").innerText =
+                        "本日の売上合計: " + parseFloat(data.total).toLocaleString() + " 円";
+
+                    document.getElementById("sales_report_overlay").style.display = "flex";
+                    document.getElementById("sales_report_overlay").style.display = "block";
+                });
+        }
+
+        function closeSales() {
+            document.getElementById("sales_report_overlay").style.display = "none";
+        }
+
+    </script>
+</body>
+
+</html>
