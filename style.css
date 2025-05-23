@@ -1,0 +1,102 @@
+ body {
+     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+     background: #f5f7fa;
+     padding: 20px;
+     color: #333;
+ }
+
+ h2 {
+     text-align: center;
+     color: #2c3e50;
+ }
+
+ input[type="text"],
+ input[type="date"] {
+     padding: 10px;
+     border: 1px solid #ccc;
+     border-radius: 6px;
+     margin-right: 10px;
+     font-size: 16px;
+ }
+
+ button {
+     padding: 8px 14px;
+     font-size: 14px;
+     border: none;
+     border-radius: 6px;
+     cursor: pointer;
+     background-color: #3498db;
+     color: white;
+     margin: 4px;
+     transition: background-color 0.2s;
+ }
+
+ button:hover {
+     background-color: #2980b9;
+ }
+
+ table {
+     width: 100%;
+     border-collapse: collapse;
+     background: white;
+     border-radius: 8px;
+     overflow: hidden;
+     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+ }
+
+ th,
+ td {
+     padding: 12px;
+     border-bottom: 1px solid #eee;
+     text-align: center;
+ }
+
+ th {
+     background-color: #ecf0f1;
+ }
+
+ #total {
+     font-size: 22px;
+     font-weight: bold;
+     margin-top: 20px;
+     text-align: right;
+     color: #2c3e50;
+ }
+
+ #invoice {
+     margin-top: 20px;
+     padding: 20px;
+     border: 1px solid #ccc;
+     background: #ffffff;
+     width: 350px;
+     float: right;
+     display: none;
+     border-radius: 10px;
+     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+ }
+
+ #invoice h3 {
+     text-align: center;
+ }
+
+ #sales_report_overlay {
+     background: rgba(0, 0, 0, 0.5);
+ }
+
+ #sales_report_overlay>div {
+     background: #ffffff;
+     border-radius: 10px;
+     padding: 20px;
+     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+ }
+
+ .qty-buttons button {
+     padding: 4px 8px;
+     font-size: 14px;
+     margin-left: 4px;
+     background-color: #95a5a6;
+ }
+
+ .qty-buttons button:hover {
+     background-color: #7f8c8d;
+ }
